@@ -30,6 +30,8 @@ function usage() {
     echo "        h: print help information"
 }
 
+ALL_IMAGES=${ALL_IMAGES:-"${DEFAULT_IMAGES}"}
+
 keep_images="false"
 while getopts 'kh' OPT; do
   case $OPT in
@@ -45,45 +47,40 @@ while getopts 'kh' OPT; do
   esac
 done
 
+# step1、step2 share the same process as `util::misc::delete_necessary_resources`, may be reuse util::misc::delete_necessary_resources in the future, but more logs info here, keep it now.
+KARMADA_HOST=${KARMADA_HOST:-"${DEFAULT_KARMADA_HOST_CONTEXT}"}
+CLUSTER1=${CLUSTER1:-"member1"}
+CLUSTER2=${CLUSTER2:-"member2"}
+CLUSTER3=${CLUSTER3:-"member3"}
+
+
 #step1 remove kind clusters
 INFO "Start removing kind clusters"
-kind delete cluster --name "${HOST_CLUSTER_NAME:-"karmada-host"}"
-kind delete cluster --name "${MEMBER_CLUSTER_1_NAME:-"member1"}"
-kind delete cluster --name "${MEMBER_CLUSTER_2_NAME:-"member2"}"
-kind delete cluster --name "${PULL_MODE_CLUSTER_NAME:-"member3"}"
+kind delete cluster --name "${KARMADA_HOST}"
+kind delete cluster --name "${CLUSTER1}"
+kind delete cluster --name "${CLUSTER2}"
+kind delete cluster --name "${CLUSTER3}"
 INFO "Remove kind clusters successfully."
 
 #step2. remove kubeconfig
 INFO "Start removing kubeconfig"
-KUBECONFIG_PATH=${KUBECONFIG_PATH:-"${HOME}/.kube"}
-MAIN_KUBECONFIG=${MAIN_KUBECONFIG:-"${KUBECONFIG_PATH}/karmada.config"}
-MEMBER_CLUSTER_KUBECONFIG=${MEMBER_CLUSTER_KUBECONFIG:-"${KUBECONFIG_PATH}/members.config"}
-if [ -f "${MAIN_KUBECONFIG}" ] ; then
-    rm ${MAIN_KUBECONFIG}
-    INFO "Remove kubeconfig ${MAIN_KUBECONFIG} successfully."
+KARMADA_KUBECONFIG_PATH=${KARMADA_KUBECONFIG_PATH:-"${DEFAULT_KARMADA_KUBECONFIG_PATH}"}
+MEMBER_CLUSTER_KUBECONFIG_PATH=${MEMBER_CLUSTER_KUBECONFIG:-"${DEFAULT_MEMBER_CLUSTER_KUBECONFIG_PATH}"}
+if [ -f "${KARMADA_KUBECONFIG_PATH}" ] ; then
+    rm "${KARMADA_KUBECONFIG_PATH}"
+    INFO "Remove kubeconfig ${KARMADA_KUBECONFIG_PATH} successfully."
 fi
-if [ -f "${MEMBER_CLUSTER_KUBECONFIG}" ] ; then
-    rm ${MEMBER_CLUSTER_KUBECONFIG}
-    INFO "Remove kubeconfig ${MEMBER_CLUSTER_KUBECONFIG} successfully."
+if [ -f "${MEMBER_CLUSTER_KUBECONFIG_PATH}" ] ; then
+    rm "${MEMBER_CLUSTER_KUBECONFIG_PATH}"
+    INFO "Remove kubeconfig ${MEMBER_CLUSTER_KUBECONFIG_PATH} successfully."
 fi
 INFO "Remove kubeconfig successfully."
 
 #step3. remove docker images
 INFO "Start removing images"
-version="latest"
-registry="docker.io/karmada"
-images=(
-  "${registry}/karmada-controller-manager:${version}"
-  "${registry}/karmada-scheduler:${version}"
-  "${registry}/karmada-descheduler:${version}"
-  "${registry}/karmada-webhook:${version}"
-  "${registry}/karmada-scheduler-estimator:${version}"
-  "${registry}/karmada-aggregated-apiserver:${version}"
-  "${registry}/karmada-search:${version}"
-)
 if [[ "${keep_images}" == "false" ]] ; then
-  for ((i=0;i<${#images[*]};i++)); do
-    docker rmi ${images[i]} || true
+  for image in "${ALL_IMAGES[@]}"; do
+    docker rmi "${image}" || true
   done
   INFO "Remove images successfully."
 else

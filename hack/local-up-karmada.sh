@@ -59,6 +59,8 @@ CLUSTER_IMAGE="${REGISTRY}/kindest/node:${CLUSTER_VERSION}"
 ## log variables
 LOG_DIR=${LOG_DIR:-"/tmp/karmada"}
 
+ALL_IMAGES=${ALL_IMAGES:-"${DEFAULT_IMAGES}"}
+
 # specify host_ip address
 HOST_IP_ADDRESS=${1:-}
 
@@ -186,27 +188,9 @@ done
 
 # step3. load components images to kind cluster
 # the image will be loaded regardless of whether it will be used for simplicity.
-
-images=(
-  "docker.io/karmada/karmada-controller-manager:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-scheduler:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-descheduler:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-webhook:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-scheduler-estimator:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-aggregated-apiserver:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-search:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-metrics-adapter:${KARMADA_VERSION}"
-  "docker.io/karmada/karmada-agent:${KARMADA_VERSION}"
-  "registry.k8s.io/etcd:3.5.9-0"
-  "registry.k8s.io/kube-apiserver:${CLUSTER_VERSION}"
-  "registry.k8s.io/kube-controller-manager:${CLUSTER_VERSION}"
-  "registry.k8s.io/metrics-server/metrics-server:v0.6.3"
-)
-
-# todo how to check docker images exist on local machine with help of bash script
 for cluster in "${ALL_CLUSTERS[@]}"; do
   INFO "Start loading image in cluster[${cluster}]"
-  for image in "${images[@]}"; do
+  for image in "${ALL_IMAGES[@]}"; do
     kind load docker-image "${image}" --name="${cluster}" -v -1
   done
   INFO "Load image in cluster[${cluster}] finished"
