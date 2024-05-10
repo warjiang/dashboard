@@ -30,7 +30,7 @@ function usage() {
     echo "        h: print help information"
 }
 
-ALL_IMAGES=${ALL_IMAGES:-"${DEFAULT_IMAGES}"}
+ALL_IMAGES=("${DEFAULT_IMAGES[@]}")
 
 keep_images="false"
 while getopts 'kh' OPT; do

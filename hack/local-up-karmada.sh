@@ -21,7 +21,8 @@ SHELL_FOLDER=$(pwd)
 REPO_ROOT=$(cd ../ && pwd)
 
 source "${REPO_ROOT}"/hack/util/init.sh && util:init:init_scripts
-
+# for debug, need to be controlled by options
+# LOG_LEVEL_DEBUG
 # variable define
 # minimal test environment consists of a master cluster, and the other three member clusters
 # master cluster: a kubernetes cluster just like other clusters, apart from that, the karmada control plane will
@@ -59,7 +60,7 @@ CLUSTER_IMAGE="${REGISTRY}/kindest/node:${CLUSTER_VERSION}"
 ## log variables
 LOG_DIR=${LOG_DIR:-"/tmp/karmada"}
 
-ALL_IMAGES=${ALL_IMAGES:-"${DEFAULT_IMAGES}"}
+ALL_IMAGES=("${DEFAULT_IMAGES[@]}")
 
 # specify host_ip address
 HOST_IP_ADDRESS=${1:-}
@@ -84,8 +85,7 @@ PULL_MODE_CLUSTERS=(
   "${CLUSTER3}"
 )
 
-# step1. check prerequirements
-## 1.1 check bootstrap os/arch
+# check prerequirements
 INFO "Check bootstrap os/arch"
 bs_os=$(util::misc::get_os_name)
 bs_arch=$(util::misc::get_os_arch)
@@ -97,7 +97,6 @@ else
   exit 1
 fi
 
-## 1.2 check necessary clis
 INFO "Check necessary clis"
 for cli in "docker" "kind" "kubectl" "karmadactl"; do
   cli_check_result=0
@@ -116,16 +115,13 @@ for cli in "docker" "kind" "kubectl" "karmadactl"; do
   fi
 done
 
-# step2. start all k8s clusters with help of kind, including one control plane and three member clusters
-## 2.1 clean all necessary resources, for example outdated kind clusters、kubeconfig files, etc.
+# start all k8s clusters with help of kind, including one control plane and three member clusters
 INFO "Delete necessary resources"
 util::misc::delete_necessary_resources \
   "${KARMADA_KUBECONFIG_PATH},${MEMBER_CLUSTER_KUBECONFIG_PATH}" \
   "${KARMADA_HOST},${CLUSTER1},${CLUSTER2},${CLUSTER3}" \
   "${LOG_DIR}"
 
-## 2.2 prepare required config files for kind, copy yaml files and replace var(such as host_ipaddress)
-## start kind clusters and wait for cluster is ready
 TEMP_PATH=$(mktemp -d)
 trap '{ rm -rf ${TEMP_PATH}; }' EXIT
 
@@ -186,25 +182,25 @@ for cluster in "${MEMBER_CLUSTERS[@]}"; do
   NOTICE "Member cluster ${cluster} is ready..."
 done
 
-# step3. load components images to kind cluster
-# the image will be loaded regardless of whether it will be used for simplicity.
+# load components images to kind cluster, the image will be loaded regardless of whether it will be used for simplicity.
 for cluster in "${ALL_CLUSTERS[@]}"; do
   INFO "Start loading image in cluster[${cluster}]"
   for image in "${ALL_IMAGES[@]}"; do
+    DEBUG "Loading image ${image} into ${cluster}"
     kind load docker-image "${image}" --name="${cluster}" -v -1
+    DEBUG "Loading image ${image} into ${cluster} successfully"
   done
   INFO "Load image in cluster[${cluster}] finished"
 done
 
 
-# step4 install karmada control plane components
+# install karmada control plane components
 INFO "Deploy karmada control plane components"
 "${REPO_ROOT}"/hack/deploy-karmada.sh "${KARMADA_KUBECONFIG_PATH}" "${KARMADA_HOST}" "${KARMADA_APISERVER}"
 
-# step5. wait until the member cluster ready and join member clusters
-
-
-## 5.1 connecting networks between karmada-host, member1 and member2 clusters
+# wait until the member cluster ready and join member clusters
+# connecting networks between karmada-host, member1 and member2 clusters
+# join push mode member clusters
 INFO "Connecting cluster networks..."
 INFO "Connect ${CLUSTER1}<-->${CLUSTER2}"
 util::misc::add_routes "${CLUSTER1}" "${CLUSTER2_KUBECONFIG_PATH}" "${CLUSTER2}"
@@ -219,7 +215,6 @@ util::misc::add_routes "${KARMADA_HOST}" "${CLUSTER2_KUBECONFIG_PATH}" "${CLUSTE
 util::misc::add_routes "${CLUSTER2}" "${KARMADA_KUBECONFIG_PATH}" "${KARMADA_HOST}"
 INFO "Cluster networks connected"
 
-## 5.2 join push mode member clusters
 
 for push_cluster in "${PUSH_MODE_CLUSTERS[@]}"; do
   cluster_kubeconfig_path="${MEMBER_CLUSTER_KUBECONFIG_DIR_PREFIX}-${push_cluster}.config"
@@ -235,17 +230,14 @@ for push_cluster in "${PUSH_MODE_CLUSTERS[@]}"; do
     "${cluster_kubeconfig_path}" "${push_cluster}"
 done
 
-#step7. deploy karmada agent in pull mode member clusters
+# deploy karmada agent in pull mode member clusters
 "${REPO_ROOT}"/hack/deploy-agent-and-estimator.sh \
   "${KARMADA_KUBECONFIG_PATH}" "${KARMADA_HOST}" \
   "${KARMADA_KUBECONFIG_PATH}" "${KARMADA_APISERVER}" \
   "${CLUSTER3_KUBECONFIG_PATH}" "${CLUSTER3}"
 
 
-#step8. deploy metrics-server in member clusters
-#for cluster in ${CLUSTER1} ${CLUSTER2} ${CLUSTER3}; do
-#  kind load docker-image "registry.k8s.io/metrics-server/metrics-server:v0.6.3" --name="${cluster}"
-#done
+# deploy metrics-server in member clusters
 for cluster in "${MEMBER_CLUSTERS[@]}"; do
   INFO "Deploy k8s metrics server in ${cluster}"
   cluster_kubeconfig_path="${MEMBER_CLUSTER_KUBECONFIG_DIR_PREFIX}-${cluster}.config"
@@ -256,22 +248,14 @@ for cluster in "${MEMBER_CLUSTERS[@]}"; do
   util::misc::wait_cluster_ready "${KARMADA_KUBECONFIG_PATH}" "${KARMADA_APISERVER}" "${CLUSTER1}"
 done
 
-
-
-
-
-# cp kind yaml files and replace var
-# prepare for kindClusterConfig
-# TEMP_PATH=/tmp/xx
-# mkdir -p ${TEMP_PATH}
-
-
-
-#step9. merge temporary kubeconfig of member clusters by kubectl
-export KUBECONFIG=$(find ${KUBECONFIG_DIR} -maxdepth 1 -type f | grep ${MEMBER_CLUSTER_KUBECONFIG_PREFIX} | tr '\n' ':')
-kubectl config view --flatten > ${MEMBER_CLUSTER_KUBECONFIG_PATH}
-rm $(find ${KUBECONFIG_DIR} -maxdepth 1 -type f | grep ${MEMBER_CLUSTER_KUBECONFIG_PREFIX})
-
+# merge temporary kubeconfig of member clusters by kubectl
+# variable define in scripts will not make effect to parent shell thread
+KUBECONFIG=$(find "${KUBECONFIG_DIR}" -maxdepth 1 -type f | grep "${MEMBER_CLUSTER_KUBECONFIG_PREFIX}" | tr '\n' ':')
+kubectl config view --flatten > "${MEMBER_CLUSTER_KUBECONFIG_PATH}"
+for tmp_config_file in $(find "${KUBECONFIG_DIR}" -maxdepth 1 -type f | grep "${MEMBER_CLUSTER_KUBECONFIG_PREFIX}"); do
+  DEBUG "Remove ${tmp_config_file}"
+  rm -f "${tmp_config_file}"
+done
 
 function print_success() {
   echo -e "$KARMADA_GREETING"
