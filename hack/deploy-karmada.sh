@@ -225,7 +225,9 @@ done
 
 # deploy etcd
 INFO "Start deploy etcd on ${KARMADA_HOST}"
-karmada_host_kubectl apply -f "${REPO_ROOT}"/artifacts/deploy/karmada-etcd.yaml | INFO
+karmada_host_kubectl apply -f "${REPO_ROOT}"/artifacts/deploy/karmada-etcd.yaml | while IFS= read -r line; do
+   INFO "$line"
+done
 INFO "Wait for etcd is ready"
 util::misc::wait_pod_ready \
   "${KARMADA_KUBECONFIG_PATH}" "${KARMADA_HOST}" \
@@ -239,7 +241,9 @@ done
 sed -i'' -e "s/{{service_type}}/${KARMADA_APISERVER_SERVICE_TYPE}/g" "${DEPLOY_DIR}"/karmada-apiserver.yaml
 
 INFO "Create apiserver service on ${KARMADA_HOST}"
-karmada_host_kubectl apply -f "${DEPLOY_DIR}"/karmada-apiserver.yaml | INFO
+karmada_host_kubectl apply -f "${DEPLOY_DIR}"/karmada-apiserver.yaml | while IFS= read -r line; do
+  INFO "$line"
+done
 INFO "Wait for karmada-apiserver is ready"
 util::misc::wait_pod_ready \
   "${KARMADA_KUBECONFIG_PATH}" "${KARMADA_HOST}" \

@@ -214,7 +214,7 @@ function util::verify::check_clusters_ready() {
 
 
   INFO  "Rename cluster kind-${context_name} -> ${context_name}"
-  kubectl config rename-context "kind-${context_name}" "${context_name}" --kubeconfig="${kubeconfig_path}"
+  kubectl config rename-context "kind-${context_name}" "${context_name}" --kubeconfig="${kubeconfig_path}" | NOTICE
 
   local os_name
   os_name=$(util::misc::get_os_name)
@@ -233,7 +233,7 @@ function util::verify::check_clusters_ready() {
   esac
 
   INFO  "Set cluster ${context_name} apiserver to 'https://${container_ip_port}'"
-  kubectl config set-cluster "kind-${context_name}" --server="https://${container_ip_port}" --kubeconfig="${kubeconfig_path}"
+  kubectl config set-cluster "kind-${context_name}" --server="https://${container_ip_port}" --kubeconfig="${kubeconfig_path}" | NOTICE
 
   util::verify::wait_for_condition \
       'ok' \
