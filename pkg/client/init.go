@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	karmadaclientset "github.com/karmada-io/karmada/pkg/generated/clientset/versioned"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -140,6 +141,13 @@ func InClusterClient() kubeclient.Interface {
 	return inClusterClient
 }
 
+func GetKubeConfig() (*rest.Config, *clientcmdapi.Config, error) {
+	if !isKubeInitialized() {
+		return nil, nil, fmt.Errorf("client package not initialized")
+	}
+	return kubernetesRestConfig, kubernetesApiConfig, nil
+}
+
 func isKarmadaInitialized() bool {
 	if karmadaRestConfig == nil || karmadaApiConfig == nil {
 		klog.Errorf(`warjiang/karmada-dashboard/client' package has not been initialized properly. Run 'client.InitKarmadaConfig(...)' to initialize it. `)
@@ -181,4 +189,11 @@ func InClusterKarmadaClient() karmadaclientset.Interface {
 	// initialize in-memory client
 	inClusterKarmadaClient = c
 	return inClusterKarmadaClient
+}
+
+func GetKarmadaConfig() (*rest.Config, *clientcmdapi.Config, error) {
+	if !isKarmadaInitialized() {
+		return nil, nil, fmt.Errorf("client package not initialized")
+	}
+	return karmadaRestConfig, karmadaApiConfig, nil
 }

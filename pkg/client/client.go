@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -63,4 +64,26 @@ func LoadApiConfig(kubeconfig string, currentContext string) (*clientcmdapi.Conf
 		CurrentContext: currentContext,
 	}
 	return apiConfig, nil
+}
+
+func LoadeRestConfigFromKubeConfig(kubeconfig string) (*rest.Config, error) {
+	apiConfig, err := clientcmd.Load([]byte(kubeconfig))
+	if err != nil {
+		return nil, err
+	}
+	clientConfig := clientcmd.NewDefaultClientConfig(*apiConfig, &clientcmd.ConfigOverrides{})
+	restConfig, err := clientConfig.ClientConfig()
+	if err != nil {
+		return nil, err
+	}
+	return restConfig, nil
+}
+
+func KubeClientSetFromKubeConfig(kubeconfig string) (*kubeclient.Clientset, error) {
+	restConfig, err := LoadeRestConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	kubeClient := kubeclient.NewForConfigOrDie(restConfig)
+	return kubeClient, nil
 }
