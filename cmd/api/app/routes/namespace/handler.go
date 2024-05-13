@@ -17,7 +17,10 @@ func handleCreateNamespace(c *gin.Context) {
 		common.Fail(c, err)
 		return
 	}
-	spec := &ns.NamespaceSpec{Name: createNamesapceRequest.Name}
+	spec := &ns.NamespaceSpec{
+		Name:                createNamesapceRequest.Name,
+		SkipAutoPropagation: createNamesapceRequest.SkipAutoPropagation,
+	}
 	if err := ns.CreateNamespace(spec, k8sClient); err != nil {
 		common.Fail(c, err)
 		return

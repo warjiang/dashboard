@@ -13,6 +13,8 @@ import (
 type NamespaceSpec struct {
 	// Name of the namespace.
 	Name string `json:"name"`
+	// Whether skip auto propagation
+	SkipAutoPropagation bool
 }
 
 // CreateNamespace creates namespace based on given specification.
@@ -24,6 +26,11 @@ func CreateNamespace(spec *NamespaceSpec, client kubernetes.Interface) error {
 		ObjectMeta: metaV1.ObjectMeta{
 			Name: spec.Name,
 		},
+	}
+	if spec.SkipAutoPropagation {
+		namespace.Labels = map[string]string{
+			"namespace.karmada.io/skip-auto-propagation": "true",
+		}
 	}
 	_, err := client.CoreV1().Namespaces().Create(context.TODO(), namespace, metaV1.CreateOptions{})
 	return err
