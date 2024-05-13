@@ -15,7 +15,7 @@
 package errors_test
 
 import (
-	"github.com/karmada-io/karmada-dashboard/pkg/common/errors"
+	"github.com/karmada-io/dashboard/pkg/common/errors"
 	"testing"
 )
 

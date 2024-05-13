@@ -2,7 +2,7 @@ package common
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/karmada-io/karmada-dashboard/pkg/dataselect"
+	"github.com/karmada-io/dashboard/pkg/dataselect"
 	"strconv"
 	"strings"
 )

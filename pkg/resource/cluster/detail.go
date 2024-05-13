@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"github.com/karmada-io/karmada-dashboard/pkg/dataselect"
+	"github.com/karmada-io/dashboard/pkg/dataselect"
 	"github.com/karmada-io/karmada/pkg/apis/cluster/v1alpha1"
 	karmadaclientset "github.com/karmada-io/karmada/pkg/generated/clientset/versioned"
 )

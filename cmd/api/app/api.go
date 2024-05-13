@@ -3,15 +3,18 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/karmada-io/karmada-dashboard/cmd/api/app/options"
-	"github.com/karmada-io/karmada-dashboard/cmd/api/app/router"
-	"github.com/karmada-io/karmada-dashboard/pkg/client"
-	"github.com/karmada-io/karmada-dashboard/pkg/environment"
+	"github.com/karmada-io/dashboard/cmd/api/app/options"
+	"github.com/karmada-io/dashboard/cmd/api/app/router"
+	"github.com/karmada-io/dashboard/pkg/client"
+	"github.com/karmada-io/dashboard/pkg/environment"
 	"github.com/karmada-io/karmada/pkg/sharedcli/klogflag"
 	"github.com/spf13/cobra"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog/v2"
 	"os"
+
+	// Importing route packages forces route registration
+	_ "github.com/karmada-io/dashboard/cmd/api/app/routes/cluster"
 )
 
 // NewApiCommand creates a *cobra.Command object with default parameters

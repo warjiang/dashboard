@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/karmada-io/karmada-dashboard/cmd/api/app"
+	"github.com/karmada-io/dashboard/cmd/api/app"
 	"k8s.io/component-base/cli"
 	"os"
 )
