@@ -75,7 +75,7 @@ const ClusterManagePage = () => {
             title: '节点状态',
             dataIndex: "nodeStatus",
             align: 'center',
-            width: 200,
+            width: 150,
             render: (_, r) => {
                 if (r.nodeSummary) {
                     const {totalNum, readyNum} = r.nodeSummary
@@ -87,6 +87,7 @@ const ClusterManagePage = () => {
         {
             title: 'cpu用量',
             dataIndex: 'cpuFraction',
+            width: '15%',
             render: (_, r) => {
                 const fraction = parseFloat(r.allocatedResources.cpuFraction.toFixed(2))
                 return <Progress percent={fraction} strokeColor={getPercentColor(fraction)}/>
@@ -95,6 +96,7 @@ const ClusterManagePage = () => {
         {
             title: 'memory用量',
             dataIndex: 'memoryFraction',
+            width: '15%',
             render: (_, r) => {
                 const fraction = parseFloat(r.allocatedResources.memoryFraction.toFixed(2))
                 return <Progress percent={fraction} strokeColor={getPercentColor(fraction)}/>
