@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:dashboard": "cd apps/dashboard && pnpm run dev"
+    "dashboard:dev": "cd apps/dashboard && pnpm run dev",
+    "dashboard:build": "cd apps/dashboard && pnpm run build"
   },
   "keywords": [],
   "author": "",
