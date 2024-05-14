@@ -16,6 +16,7 @@ export type Annotations = Record<string, string>
 
 export interface ObjectMeta {
     name: string
+    namespace: string
     labels: Labels
     annotations: Annotations
     creationTimestamp: string
@@ -24,4 +25,7 @@ export interface ObjectMeta {
 
 export interface TypeMeta {
     kind: string
+    scalable: boolean
+    restartable: boolean
 }
+
