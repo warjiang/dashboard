@@ -28,4 +28,10 @@ export interface TypeMeta {
     scalable: boolean
     restartable: boolean
 }
+export type Selector =  Record<string, string>
 
+
+export interface RollingUpdateStrategy {
+    maxSurge: string
+    maxUnavailable: string
+}

@@ -1,4 +1,4 @@
-import {IResponse, karmadaClient} from "@/services/base.ts";
+import {IResponse, karmadaClient, RollingUpdateStrategy, Selector} from "@/services/base.ts";
 import {ObjectMeta, TypeMeta} from '@/services/base'
 
 export interface DeploymentWorkload {
@@ -43,6 +43,76 @@ export async function GetWorkloads(params: {
         deployments: DeploymentWorkload[]
     }>>(
         url
+    )
+    return resp.data
+}
+
+export interface WorkloadDetail {
+    objectMeta: ObjectMeta
+    typeMeta: TypeMeta
+    pods: Pods
+    containerImages: string[]
+    initContainerImages: any
+    selector: Selector
+    statusInfo: WorkloadStatusInfo
+    conditions: any[]
+    strategy: string
+    minReadySeconds: number
+    rollingUpdateStrategy: RollingUpdateStrategy
+    revisionHistoryLimit: number
+}
+
+export interface WorkloadStatusInfo {
+    replicas: number
+    updated: number
+    available: number
+    unavailable: number
+}
+
+export async function GetWorkloadDetail(params: {
+    namespace?: string
+    name: string
+}) {
+    // /deployment/:namespace/:deployment
+    const {name, namespace} = params
+    const resp = await karmadaClient.get<IResponse<{
+        errors: string[]
+    } & WorkloadDetail>>(
+        `/deployment/${namespace}/${name}`
+    )
+    return resp.data
+}
+
+export interface WorkloadEvent {
+    objectMeta: ObjectMeta
+    typeMeta: TypeMeta
+    message: string
+    sourceComponent: string
+    sourceHost: string
+    object: string
+    objectKind: string
+    objectName: string
+    objectNamespace: string
+    count: number
+    firstSeen: string
+    lastSeen: string
+    reason: string
+    type: string
+}
+
+export async function GetWorkloadEvents(params: {
+    namespace: string
+    name: string
+}) {
+    const {name, namespace} = params
+    const resp = await karmadaClient.get<IResponse<{
+        errors: string[]
+        listMeta: {
+            totalItems: number
+        },
+        events: WorkloadEvent[]
+    }>>(
+        `/deployment/${namespace}/${name}/event`
     )
     return resp.data
 }

@@ -1,19 +1,24 @@
 import Panel from '@/components/panel'
-import {Button, Input, Select, Space, Table, TableColumnProps, Tag} from "antd";
+import {Button, Input, message, Select, Space, Table, TableColumnProps, Tag} from "antd";
 import {Icons} from "@/components/icons";
 import {GetNamespaces,} from '@/services/namespace';
 import {GetWorkloads} from '@/services/workload'
 import type {DeploymentWorkload} from '@/services/workload'
 import {useQuery} from "@tanstack/react-query";
-import {useMemo} from "react";
-import {DeleteResource} from "@/services/unstructured.ts";
+import {useCallback, useMemo, useState} from "react";
+import {DeleteResource, GetResource} from "@/services/unstructured.ts";
+import NewWorkloadEditorModal from './new-workload-editor-modal.tsx'
+import WorkloadDetailDrawer, {WorkloadDetailDrawerProps} from './workload-detail-drawer.tsx'
+import {useToggle} from "@uidotdev/usehooks";
+import { stringify } from 'yaml'
+
 /*
 propagationpolicy.karmada.io/name: "nginx-propagation"
 propagationpolicy.karmada.io/namespace: "default"
 */
 const propagationpolicyKey = 'propagationpolicy.karmada.io/name'
 const WorkloadPage = () => {
-    const {data:nsData} = useQuery({
+    const {data: nsData} = useQuery({
         queryKey: ['GetNamespaces'],
         queryFn: async () => {
             const clusters = await GetNamespaces()
@@ -21,7 +26,7 @@ const WorkloadPage = () => {
         }
     })
     const nsOptions = useMemo(() => {
-        if(!nsData?.namespaces) return[]
+        if (!nsData?.namespaces) return []
         return nsData.namespaces.map(item => {
             return {
                 title: item.objectMeta.name,
@@ -29,14 +34,33 @@ const WorkloadPage = () => {
             }
         })
     }, [nsData]);
-    const {data,isLoading} = useQuery({
+    const {data, isLoading} = useQuery({
         queryKey: ['GetWorkloads'],
         queryFn: async () => {
             const clusters = await GetWorkloads({})
             return clusters.data || {}
         }
     })
-    console.log('data', data?.deployments)
+    const [drawerData, setDrawerData] = useState<Omit<WorkloadDetailDrawerProps, 'onClose'>>({
+        open: false,
+        kind: '',
+        namespace: '',
+        name: ''
+    })
+    const [showModal, toggleShowModal] = useToggle(false);
+    const [editorState, setEditorState] = useState<{
+        mode: 'create' | 'edit',
+        content: string
+    }>({
+        mode: 'create',
+        content: ''
+    })
+    const resetEditorState = useCallback(() => {
+        setEditorState({
+            mode: 'create',
+            content: ''
+        })
+    }, [editorState])
     const columns: TableColumnProps<DeploymentWorkload>[] = [
         {
             title: '命名空间',
@@ -88,6 +112,7 @@ const WorkloadPage = () => {
         {
             title: '覆盖策略',
             key: 'overridePolicies',
+            width: 150,
             render: () => {
                 return '-'
             }
@@ -98,8 +123,36 @@ const WorkloadPage = () => {
             width: 200,
             render: (_, r) => {
                 return <Space.Compact>
-                    <Button size={'small'} type='link'>查看</Button>
-                    <Button size={'small'} type='link'>编辑</Button>
+                    <Button
+                        size={'small'} type='link'
+                        onClick={() => {
+                            setDrawerData({
+                                open: true,
+                                kind: r.typeMeta.kind,
+                                name: r.objectMeta.name,
+                                namespace: r.objectMeta.namespace
+                            })
+                        }}
+                    >
+                        查看
+                    </Button>
+                    <Button
+                        size={'small'} type='link'
+                        onClick={async () => {
+                            const ret = await GetResource({
+                                kind: r.typeMeta.kind,
+                                name: r.objectMeta.name,
+                                namespace: r.objectMeta.namespace
+                            })
+                            setEditorState({
+                                mode: 'edit',
+                                content: stringify(ret.data)
+                            })
+                            toggleShowModal(true)
+                        }}
+                    >
+                        编辑
+                    </Button>
                     <Button
                         size={'small'} type='link' danger
                         onClick={async () => {
@@ -117,12 +170,13 @@ const WorkloadPage = () => {
             }
         }
     ]
+    const [messageApi, messageContextHolder] = message.useMessage();
     return <Panel>
         <div className={'flex flex-row justify-between mb-4'}>
             <div className={'flex flex-row justify-center space-x-4'}>
                 <h3 className={'leading-[32px]'}>命名空间：</h3>
-                <Select options={nsOptions} className={'w-[300px]'}/>
-                <Input.Search placeholder={'按命名空间搜索'} className={'w-[400px]'}/>
+                <Select options={nsOptions} className={'w-[200px]'}/>
+                <Input.Search placeholder={'按命名空间搜索'} className={'w-[300px]'}/>
             </div>
 
             <Button
@@ -130,6 +184,7 @@ const WorkloadPage = () => {
                 icon={<Icons.add width={16} height={16}/>}
                 className="flex flex-row items-center"
                 onClick={() => {
+                    toggleShowModal(true)
                 }}
             >
                 新增工作负载
@@ -141,6 +196,38 @@ const WorkloadPage = () => {
             loading={isLoading}
             dataSource={data?.deployments || []}
         />
+        <NewWorkloadEditorModal
+            mode={editorState.mode}
+            workloadContent={editorState.content}
+            open={showModal}
+            onOk={async (ret) => {
+                if(ret.code === 200) {
+                    messageApi.success('工作负载修改成功')
+                    toggleShowModal(false)
+                } else {
+                    messageApi.error('工作负载修改失败')
+                }
+            }}
+            onCancel={async () => {
+                resetEditorState()
+                toggleShowModal(false);
+            }}
+        />
+        <WorkloadDetailDrawer
+            open={drawerData.open}
+            kind={drawerData.kind}
+            name={drawerData.name}
+            namespace={drawerData.namespace}
+            onClose={() => {
+                setDrawerData({
+                    open: false,
+                    kind: '',
+                    namespace: '',
+                    name: ''
+                })
+            }}
+        />
+        {messageContextHolder}
     </Panel>
 }
 
