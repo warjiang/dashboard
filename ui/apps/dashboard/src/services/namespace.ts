@@ -13,9 +13,24 @@ export async function GetNamespaces() {
         listMeta: {
             totalItems: number
         }
-        namespaces:Namespace[]
+        namespaces: Namespace[]
     }>>(
         "/namespace"
     )
     return resp.data
+}
+
+export async function CreateNamespace(params: {
+    name: string,
+    skipAutoPropagation: boolean
+}) {
+    const resp = await karmadaClient.post<IResponse<string>>(
+        "/namespace",
+        params
+    )
+    return resp.data
+}
+
+export async function DeleteNamespace() {
+
 }
