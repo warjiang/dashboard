@@ -9,6 +9,10 @@ import (
 	"log"
 )
 
+const (
+	skipAutoPropagationLable = "namespace.karmada.io/skip-auto-propagation"
+)
+
 // NamespaceSpec is a specification of namespace to create.
 type NamespaceSpec struct {
 	// Name of the namespace.
@@ -29,7 +33,7 @@ func CreateNamespace(spec *NamespaceSpec, client kubernetes.Interface) error {
 	}
 	if spec.SkipAutoPropagation {
 		namespace.Labels = map[string]string{
-			"namespace.karmada.io/skip-auto-propagation": "true",
+			skipAutoPropagationLable: "true",
 		}
 	}
 	_, err := client.CoreV1().Namespaces().Create(context.TODO(), namespace, metaV1.CreateOptions{})

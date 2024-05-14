@@ -29,7 +29,8 @@ type Namespace struct {
 	TypeMeta   types.TypeMeta   `json:"typeMeta"`
 
 	// Phase is the current lifecycle phase of the namespace.
-	Phase v1.NamespacePhase `json:"phase"`
+	Phase               v1.NamespacePhase `json:"phase"`
+	SkipAutoPropagation bool              `json:"skipAutoPropagation"`
 }
 
 // GetNamespaceList returns a list of all namespaces in the cluster.
@@ -64,9 +65,12 @@ func toNamespaceList(namespaces []v1.Namespace, nonCriticalErrors []error, dsQue
 }
 
 func toNamespace(namespace v1.Namespace) Namespace {
+	_, exist := namespace.Labels[skipAutoPropagationLable]
+
 	return Namespace{
-		ObjectMeta: types.NewObjectMeta(namespace.ObjectMeta),
-		TypeMeta:   types.NewTypeMeta(types.ResourceKindNamespace),
-		Phase:      namespace.Status.Phase,
+		ObjectMeta:          types.NewObjectMeta(namespace.ObjectMeta),
+		TypeMeta:            types.NewTypeMeta(types.ResourceKindNamespace),
+		Phase:               namespace.Status.Phase,
+		SkipAutoPropagation: exist,
 	}
 }
