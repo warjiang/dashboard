@@ -42,3 +42,7 @@ $(IMAGE_TARGET):
 	target=$$(echo $(subst image-,,$@));\
 	make $$target GOOS=linux;\
 	VERSION=$(VERSION) REGISTRY=$(REGISTRY) BUILD_PLATFORMS=linux/$(GOARCH) hack/docker.sh $$target
+
+
+bundle-frontend-dashboard:
+	cd ui && pnpm run dashboard:build
