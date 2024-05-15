@@ -20,5 +20,5 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 RUN apk add --no-cache ca-certificates
 #tzdata is used to parse the time zone information when using CronFederatedHPA
 RUN apk add --no-cache tzdata
-
+COPY dist /static
 COPY ${BINARY} /bin/${BINARY}

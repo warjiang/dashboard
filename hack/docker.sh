@@ -26,6 +26,7 @@ REGISTRY=${REGISTRY:-"docker.io/karmada"}
 VERSION=${VERSION:="unknown"}
 DOCKER_BUILD_ARGS=${DOCKER_BUILD_ARGS:-}
 SIGN_IMAGE=${SIGN_IMAGE:-"0"}
+DOCKER_FILE=${DOCKER_FILE:-"buildx.Dockerfile"}
 
 function build_images() {
   local -r target=$1
@@ -54,7 +55,7 @@ function build_local_image() {
   # shellcheck disable=SC2086
   docker build --build-arg BINARY="${target}" ${DOCKER_BUILD_ARGS} \
           --tag "${image_name}" \
-          --file "${REPO_ROOT}/cluster/images/Dockerfile" \
+          --file "${REPO_ROOT}/cluster/images/${DOCKER_FILE}" \
           "${REPO_ROOT}/_output/bin/${platform}"
   set +x
   if [[ "$output_type" == "registry" ]]; then
@@ -77,7 +78,7 @@ function build_cross_image() {
           --build-arg BINARY="${target}" \
           "${DOCKER_BUILD_ARGS}" \
           --tag "${image_name}" \
-          --file "${REPO_ROOT}/cluster/images/buildx.Dockerfile" \
+          --file "${REPO_ROOT}/cluster/images/${DOCKER_FILE}" \
           "${REPO_ROOT}/_output/bin"
   # sign_image "${image_name}"
   set +x
