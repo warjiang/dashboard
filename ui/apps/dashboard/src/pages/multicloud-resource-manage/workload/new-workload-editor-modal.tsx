@@ -39,10 +39,7 @@ const NewWorkloadEditorModal: FC<NewWorkloadEditorModalProps> = (props) => {
                 const kind = _.get(yamlObject, 'kind')
                 const namespace = _.get(yamlObject, 'metadata.namespace')
                 const name = _.get(yamlObject, 'metadata.name')
-                console.log('yaml', yamlObject)
-                console.log({
-                    kind, name, namespace
-                })
+
                 const ret = await PutResource({
                     kind, name, namespace,
                     content: yamlObject
