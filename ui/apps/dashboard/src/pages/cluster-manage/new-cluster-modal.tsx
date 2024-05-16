@@ -48,7 +48,6 @@ const NewClusterModal: FC<NewClusterModalProps> = (props) => {
     }, [mode]);
     useEffect(() => {
         if (mode === 'edit') {
-            console.log('clusterDetail', clusterDetail?.objectMeta.labels)
             let initData = {
                 clusterName: clusterDetail?.objectMeta?.name,
                 mode: clusterDetail?.syncMode,
@@ -94,7 +93,6 @@ const NewClusterModal: FC<NewClusterModalProps> = (props) => {
                         })
                         onOk(ret)
                     }
-                    console.log('submitData', submitData)
                 } catch (e) {
                     console.log('e', e)
                 } finally {
@@ -288,9 +286,6 @@ const NewClusterModal: FC<NewClusterModalProps> = (props) => {
                                                 </Form.Item>
                                                 <Button
                                                     onClick={() => {
-                                                        // console.log(key, name, restField)
-                                                        // console.log(field, field.name, `taint[${field.name}]`, form.getFieldValue(['taint', field.name]))
-                                                        // console.log('restField',restField)
                                                         remove(field.name)
                                                     }}
                                                     icon={<Icons.delete width={16} height={16}/>}

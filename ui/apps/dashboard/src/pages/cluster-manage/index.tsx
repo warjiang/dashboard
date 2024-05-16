@@ -182,7 +182,6 @@ const ClusterManagePage = () => {
             mode={clusterModalData.mode}
             open={clusterModalData.open}
             onOk={(ret) => {
-                console.log('onok triggered')
                 if(ret.code === 200) {
                     if(clusterModalData.mode === 'create') {
                         messageApi.success('集群接入成功')
