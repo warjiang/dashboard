@@ -118,7 +118,7 @@ const ClusterManagePage = () => {
             width: 200,
             render: (_, r) => {
                 return <Space.Compact>
-                    <Button size={'small'} type='link'>查看</Button>
+                    <Button size={'small'} type='link' disabled>查看</Button>
                     <Button
                         size={'small'} type='link'
                         onClick={async () => {
