@@ -48,8 +48,6 @@ jobs:
           build-args: |
             BINARY=${BINARY_NAME}
             BUILD_PLATFORMS=${{ steps.os.outputs.os }}/${{ steps.os.outputs.arch }}
-      - name: Push image
-        run: docker push $IMAGE_NAME:${{ steps.meta.outputs.tags }}
 
 #VERSION=$(VERSION) REGISTRY=$(REGISTRY) BUILD_PLATFORMS=linux/$(GOARCH) hack/docker.sh $$target
 #docker build --build-arg BINARY="${target}" ${DOCKER_BUILD_ARGS} \
