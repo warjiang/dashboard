@@ -2,38 +2,57 @@ name: LatestImage
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - refactor/dashboard
+      - feature/*
 
 jobs:
-  build-and-push:
-    # prevent job running from forked repository, otherwise
-    # 1. running on the forked repository would fail as missing necessary secret.
-    # 2. running on the forked repository would use unnecessary GitHub Action time.
-    if: ${{ github.repository == 'karmada-io/dashboard' && github.ref == 'refs/heads/main' }}
+  build-and-push-api:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.18.x]
+    env:
+      IMAGE_NAME: warjiang/karmada-dashboard-api
+      BINARY_NAME: karmada-dashboard-api
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: Build
+          go-version: '^1.22.2'
+      - name: Detect os info
+        id: os
         run: |
-          echo "start build"
-          npm install
-          npm run build
-          docker build . --file Dockerfile --tag ${{ secrets.SWR_REGISTRY }}/karmada-dashboard:latest
-      - name: Login in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+          echo "os=${go env GOHOSTOS}" >> $GITHUB_OUTPUT
+          echo "arch=${go env GOHOSTARCH}" >> $GITHUB_OUTPUT
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.SWR_REGISTRY }}
-          username: ${{ secrets.SWR_REGISTRY_USER_NAME }}
-          password: ${{ secrets.SWR_REGISTRY_PASSWORD }}
-
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata for the Docker image
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: $IMAGE_NAME
+      - name: Build karmada-dashboard-api binary
+        run: make karmada-dashboard-api
+      - name: Build karmada-dashboard-api image
+        run: make image-karmada-dashboard-api
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          file: "cluster/images/Dockerfile"
+          context: "_output/bin/${{ steps.os.outputs.os }}/${{ steps.os.outputs.arch }}"
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            BINARY=${BINARY_NAME}
+            BUILD_PLATFORMS=${{ steps.os.outputs.os }}/${{ steps.os.outputs.arch }}
       - name: Push image
-        run: |
-          echo "push image"
-          docker push ${{ secrets.SWR_REGISTRY }}/karmada-dashboard:latest
+        run: docker push $IMAGE_NAME:${{ steps.meta.outputs.tags }}
+
+#VERSION=$(VERSION) REGISTRY=$(REGISTRY) BUILD_PLATFORMS=linux/$(GOARCH) hack/docker.sh $$target
+#docker build --build-arg BINARY="${target}" ${DOCKER_BUILD_ARGS} \
+#          --tag "${image_name}" \
+#          --file "${REPO_ROOT}/cluster/images/${DOCKER_FILE}" \
+#          "${REPO_ROOT}/_output/bin/${platform}"
