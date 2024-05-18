@@ -22,8 +22,8 @@ jobs:
       - name: Detect os info
         id: os
         run: |
-          echo "os=${go env GOHOSTOS}" >> $GITHUB_OUTPUT
-          echo "arch=${go env GOHOSTARCH}" >> $GITHUB_OUTPUT
+          echo "os=$(go env GOHOSTOS)" >> $GITHUB_OUTPUT
+          echo "arch=$(go env GOHOSTARCH)" >> $GITHUB_OUTPUT
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
