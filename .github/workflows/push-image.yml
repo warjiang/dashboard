@@ -22,8 +22,9 @@ jobs:
           echo "Install package manager"
           npm install -g pnpm
           echo "Start build"
+          cd ui
           pnpm install -w
-          cd ui && pnpm run dashboard:build
+          pnpm run dashboard:build
 
   build-and-push-api:
     runs-on: ubuntu-latest
