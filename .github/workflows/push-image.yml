@@ -1,4 +1,4 @@
-name: LatestImage
+name: Build Images
 
 on:
   push:
@@ -8,6 +8,23 @@ on:
       - feature/*
 
 jobs:
+  build-fronted:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Build
+        run: |
+          echo "Install package manager"
+          npm install -g pnpm
+          echo "Start build"
+          pnpm install
+          pnpm run dashboard:build
+
   build-and-push-api:
     runs-on: ubuntu-latest
     env:
@@ -50,6 +67,8 @@ jobs:
           build-args: |
             BINARY=${{ steps.misc.outputs.binary_name }}
             BUILD_PLATFORMS=${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}
+
+
 
 #VERSION=$(VERSION) REGISTRY=$(REGISTRY) BUILD_PLATFORMS=linux/$(GOARCH) hack/docker.sh $$target
 #docker build --build-arg BINARY="${target}" ${DOCKER_BUILD_ARGS} \
