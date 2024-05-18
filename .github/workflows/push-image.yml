@@ -19,11 +19,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '^1.22.2'
-      - name: Detect os info
-        id: os
+      - name: Detect misc info
+        id: misc
         run: |
           echo "os=$(go env GOHOSTOS)" >> $GITHUB_OUTPUT
           echo "arch=$(go env GOHOSTARCH)" >> $GITHUB_OUTPUT
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -33,7 +34,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: $IMAGE_NAME
+          images: ${{ steps.misc.outputs.image_name }}
       - name: Build karmada-dashboard-api binary
         run: make karmada-dashboard-api
       - name: Build karmada-dashboard-api image
@@ -42,12 +43,12 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: "cluster/images/Dockerfile"
-          context: "_output/bin/${{ steps.os.outputs.os }}/${{ steps.os.outputs.arch }}"
+          context: "_output/bin/${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}"
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             BINARY=${BINARY_NAME}
-            BUILD_PLATFORMS=${{ steps.os.outputs.os }}/${{ steps.os.outputs.arch }}
+            BUILD_PLATFORMS=${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}
 
 #VERSION=$(VERSION) REGISTRY=$(REGISTRY) BUILD_PLATFORMS=linux/$(GOARCH) hack/docker.sh $$target
 #docker build --build-arg BINARY="${target}" ${DOCKER_BUILD_ARGS} \
