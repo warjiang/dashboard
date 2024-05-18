@@ -23,6 +23,7 @@ jobs:
       - name: Build
         run: |
           echo "Start build"
+          pnpm --version
           cd ui
           pnpm install -w
           pnpm run dashboard:build
