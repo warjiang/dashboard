@@ -66,7 +66,10 @@ jobs:
           path: .
       - name: Unzip Artifact
         run: |
+          pwd
+          mkdir -p _output/bin/${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}/dist
           tar xf ./artifact.tar -C _output/bin/${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}/dist
+          ls -al _output/bin
           ls -al _output/bin/${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}/dist
       - name: Extract metadata for the Docker image
         id: meta
