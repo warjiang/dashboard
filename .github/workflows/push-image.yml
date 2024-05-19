@@ -30,7 +30,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          path: ui/dist
+          path: ui/apps/dashboard/dist
           name: dashboard_artifact
 
   build-and-push-web:
