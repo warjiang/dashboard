@@ -58,7 +58,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build karmada-dashboard-web binary
-        run: bin-karmada-dashboard-web
+        run: make bin-karmada-dashboard-web
       - name: Download a Build Artifact
         uses: actions/download-artifact@v2
         with:
