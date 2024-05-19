@@ -87,6 +87,7 @@ jobs:
             BINARY=${{ steps.misc.outputs.binary_name }}
             BUILD_PLATFORMS=${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}
 
+
   build-and-push-api:
     runs-on: ubuntu-latest
     env:
@@ -127,11 +128,3 @@ jobs:
           build-args: |
             BINARY=${{ steps.misc.outputs.binary_name }}
             BUILD_PLATFORMS=${{ steps.misc.outputs.os }}/${{ steps.misc.outputs.arch }}
-
-
-
-#VERSION=$(VERSION) REGISTRY=$(REGISTRY) BUILD_PLATFORMS=linux/$(GOARCH) hack/docker.sh $$target
-#docker build --build-arg BINARY="${target}" ${DOCKER_BUILD_ARGS} \
-#          --tag "${image_name}" \
-#          --file "${REPO_ROOT}/cluster/images/${DOCKER_FILE}" \
-#          "${REPO_ROOT}/_output/bin/${platform}"
