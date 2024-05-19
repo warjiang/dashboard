@@ -42,7 +42,7 @@ const NamespacePage = () => {
             }
         },
         {
-            title: '是否跳过自动调度',
+            title: '跳过自动调度',
             key: 'skipAutoPropagation',
             render: (_, r) => {
                 return r.skipAutoPropagation ?
