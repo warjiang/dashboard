@@ -57,6 +57,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build karmada-dashboard-web binary
+        run: bin-karmada-dashboard-web
       - name: Download a Build Artifact
         uses: actions/download-artifact@v2
         with:
@@ -71,8 +73,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ steps.misc.outputs.image_name }}
-      - name: Build karmada-dashboard-web binary
-        run: bin-karmada-dashboard-web
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
