@@ -1,5 +1,5 @@
 import Panel from '@/components/panel'
-import {Button, Input, message, Select, Space, Table, TableColumnProps, Tag} from "antd";
+import {Button, Input, message, Popconfirm, Select, Space, Table, TableColumnProps, Tag} from "antd";
 import {Icons} from "@/components/icons";
 import {GetNamespaces,} from '@/services/namespace';
 import {GetWorkloads} from '@/services/workload'
@@ -10,7 +10,7 @@ import {DeleteResource, GetResource} from "@/services/unstructured.ts";
 import NewWorkloadEditorModal from './new-workload-editor-modal.tsx'
 import WorkloadDetailDrawer, {WorkloadDetailDrawerProps} from './workload-detail-drawer.tsx'
 import {useToggle} from "@uidotdev/usehooks";
-import { stringify } from 'yaml'
+import {stringify} from 'yaml'
 
 /*
 propagationpolicy.karmada.io/name: "nginx-propagation"
@@ -34,7 +34,7 @@ const WorkloadPage = () => {
             }
         })
     }, [nsData]);
-    const {data, isLoading} = useQuery({
+    const {data, isLoading, refetch} = useQuery({
         queryKey: ['GetWorkloads'],
         queryFn: async () => {
             const clusters = await GetWorkloads({})
@@ -153,19 +153,29 @@ const WorkloadPage = () => {
                     >
                         编辑
                     </Button>
-                    <Button
-                        size={'small'} type='link' danger
-                        onClick={async () => {
+
+                    <Popconfirm
+                        placement="topRight"
+                        title={`确认要删除${r.objectMeta.name}工作负载么`}
+                        onConfirm={async () => {
+                            // todo after delete, need to wait until resource deleted
                             const ret = await DeleteResource({
                                 kind: r.typeMeta.kind,
-                                name: r.objectMeta.name
+                                name: r.objectMeta.name,
+                                namespace: r.objectMeta.namespace,
                             })
                             if (ret.code === 200) {
+                                await refetch()
                             } else {
                             }
-                        }}>
-                        删除
-                    </Button>
+                        }}
+                        okText="确认"
+                        cancelText="取消"
+                    >
+                        <Button size={'small'} type='link' danger>删除</Button>
+                    </Popconfirm>
+
+
                 </Space.Compact>
             }
         }
@@ -201,11 +211,14 @@ const WorkloadPage = () => {
             workloadContent={editorState.content}
             open={showModal}
             onOk={async (ret) => {
-                if(ret.code === 200) {
-                    messageApi.success('工作负载修改成功')
+                const msg = editorState.mode === 'edit' ? '修改' : '新增';
+                if (ret.code === 200) {
+                    messageApi.success(`工作负载${msg}成功`)
                     toggleShowModal(false)
+                    resetEditorState()
+                    await refetch()
                 } else {
-                    messageApi.error('工作负载修改失败')
+                    messageApi.error(`工作负载${msg}失败`)
                 }
             }}
             onCancel={async () => {
