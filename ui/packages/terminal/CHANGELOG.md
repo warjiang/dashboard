@@ -1,5 +1,11 @@
 # @karmada/terminal
 
+## 1.0.2
+
+### Patch Changes
+
+- add container terminal for k8s pod
+
 ## 1.0.1
 
 ### Patch Changes
