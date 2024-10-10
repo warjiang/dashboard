@@ -83,7 +83,7 @@ async function scan(cmdOptions) {
         fs.writeFileSync(cnLocalePath, JSON.stringify({
             ...existingData,
             ...updatedData,
-        }))
+        }, null, 2))
     }
 
     if (needUpdateLocale) {
